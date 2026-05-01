@@ -5,27 +5,11 @@ from schemas import Chunk
 
 
 _STOPWORDS = {
-    "a",
-    "an",
-    "and",
-    "are",
-    "can",
-    "do",
-    "for",
-    "how",
-    "i",
-    "in",
-    "is",
-    "it",
-    "me",
-    "my",
-    "of",
-    "on",
-    "or",
-    "the",
-    "to",
-    "with",
-    "you",
+    "a", "an", "and", "are", "can", "do", "for", "how", "i", "in", "is",
+    "it", "me", "my", "of", "on", "or", "the", "to", "with", "you",
+    "please", "help", "need", "want", "have", "using", "get", "use",
+    "our", "we", "us", "been", "this", "that", "not", "no", "any",
+    "some", "all", "just", "like", "also", "when", "what", "why",
 }
 
 
@@ -57,6 +41,9 @@ def retrieve(query: str, chunks: list[Chunk], top_k: int = 5) -> list[Chunk]:
         score = _score(query_tokens, chunk)
         if score > 0:
             scored.append((score, -index, chunk))
+
+    if not scored:
+        return chunks[:top_k]
 
     scored.sort(key=lambda item: (item[0], item[1]), reverse=True)
     return [chunk for _, _, chunk in scored[:top_k]]

@@ -11,15 +11,19 @@ _BUG_WORDS = (
     "inaccessible",
     "outage",
     "bug",
+    "failing",
+    "stopped working",
+    "not loading",
+    "keeps crashing",
 )
 
 _FEATURE_WORDS = (
-    "feature",
+    "feature request",
     "would love",
     "suggestion",
-    "request",
+    "please add",
     "improve",
-    "add support",
+    "add support for",
     "would be nice",
 )
 
@@ -57,9 +61,10 @@ def classify_product_area(chunks: list[Chunk], query: str) -> str:
         parts = path.parts
         if "data" in parts:
             idx = parts.index("data")
-            # data/<source>/<area>/...
             if idx + 2 < len(parts):
-                return parts[idx + 2].replace("-", "_").strip() or "general"
+                raw = parts[idx + 2]
+                area = raw.replace("-", "_").replace(".md", "").replace(".txt", "").strip("_").strip()
+                return area or "general"
         return (chunks[0].title or "").strip()[:40] or "general"
 
     # Keep deterministic fallback for empty retrieval.

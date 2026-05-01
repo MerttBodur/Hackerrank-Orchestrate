@@ -3,28 +3,67 @@ from typing import Optional
 
 
 def draft_response(ticket_text: str, corpus_snippets: list[str]) -> Optional[str]:
-    api_key = os.getenv("ANTHROPIC_API_KEY")
+    api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
         return None
-
     try:
-        import anthropic  # Optional dependency; absent in stdlib-only mode.
-
-        client = anthropic.Anthropic(api_key=api_key)
+        from openai import OpenAI
+        client = OpenAI(api_key=api_key)
         snippets_text = "\n\n".join(f"[Source]\n{s}" for s in corpus_snippets[:3])
-        prompt = (
-            "You are a support agent. Answer using ONLY provided excerpts. "
-            "If evidence is insufficient, clearly say so. Keep under 150 words.\n\n"
-            f"Excerpts:\n{snippets_text}\n\n"
-            f"Customer question: {ticket_text}"
-        )
-        msg = client.messages.create(
-            model="claude-haiku-4-5-20251001",
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
             max_tokens=300,
-            messages=[{"role": "user", "content": prompt}],
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You are a support agent. Answer using ONLY the provided excerpts. "
+                        "If the excerpts do not contain enough information, say so clearly. "
+                        "Never fabricate policies or steps. Keep your answer under 150 words."
+                    ),
+                },
+                {
+                    "role": "user",
+                    "content": f"Excerpts:\n{snippets_text}\n\nCustomer question: {ticket_text}",
+                },
+            ],
         )
-        if not msg.content:
-            return None
-        return (msg.content[0].text or "").strip() or None
+        return (response.choices[0].message.content or "").strip() or None
+    except Exception:
+        return None
+
+
+def draft_justification(
+    ticket_text: str, status: str, retrieved_titles: list[str]
+) -> Optional[str]:
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        return None
+    try:
+        from openai import OpenAI
+        client = OpenAI(api_key=api_key)
+        titles_str = ", ".join(f'"{t}"' for t in retrieved_titles) if retrieved_titles else "none"
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            max_tokens=80,
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "Write a one-sentence justification for a support ticket routing decision. "
+                        "Name the specific documents used. Be concise and factual."
+                    ),
+                },
+                {
+                    "role": "user",
+                    "content": (
+                        f"Ticket: {ticket_text}\n"
+                        f"Decision: {status}\n"
+                        f"Documents retrieved: {titles_str}"
+                    ),
+                },
+            ],
+        )
+        return (response.choices[0].message.content or "").strip() or None
     except Exception:
         return None

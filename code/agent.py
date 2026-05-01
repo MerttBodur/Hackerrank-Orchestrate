@@ -1,7 +1,7 @@
 from classifier import classify_product_area, classify_request_type, detect_company
 from corpus import load_corpus
 from escalation import should_escalate
-from response_builder import build_response
+from response_builder import build_response, build_justification
 from retriever import retrieve
 from schemas import Prediction, Ticket
 from validator import validate
@@ -37,11 +37,7 @@ class SupportAgent:
         escalated = should_escalate(query, retrieved, company)
         status = "escalated" if escalated else "replied"
         response = build_response(status=status, issue=query, chunks=retrieved)
-        if escalated:
-            justification = "Escalated because the ticket is sensitive, high-risk, or lacks enough corpus evidence."
-        else:
-            source = retrieved[0].source if retrieved else company
-            justification = f"Replied using retrieved {source} support documentation."
+        justification = build_justification(status=status, issue=query, chunks=retrieved)
 
         return validate(
             Prediction(
