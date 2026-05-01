@@ -2,14 +2,16 @@ import os
 from typing import Optional
 
 
-def draft_response(ticket_text: str, corpus_snippets: list[str]) -> Optional[str]:
+def draft_response(subject: str, issue: str, snippets: list[str]) -> Optional[str]:
+    if not snippets:
+        return None
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
         return None
     try:
         from openai import OpenAI
         client = OpenAI(api_key=api_key)
-        snippets_text = "\n\n".join(f"[Source]\n{s}" for s in corpus_snippets[:3])
+        excerpts = "\n\n".join(f"[Source {i + 1}]\n{s}" for i, s in enumerate(snippets[:3]))
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             max_tokens=300,
@@ -17,14 +19,22 @@ def draft_response(ticket_text: str, corpus_snippets: list[str]) -> Optional[str
                 {
                     "role": "system",
                     "content": (
-                        "You are a support agent. Answer using ONLY the provided excerpts. "
-                        "If the excerpts do not contain enough information, say so clearly. "
-                        "Never fabricate policies or steps. Keep your answer under 150 words."
+                        "You are a concise support agent. Using ONLY the provided excerpts:\n"
+                        "- Answer the specific question in the issue\n"
+                        "- Stay under 100 words\n"
+                        "- If steps exist, use a numbered list\n"
+                        "- If excerpts don't cover the issue, say: "
+                        "\"I don't have enough information to answer this.\"\n"
+                        "- Never fabricate policies, prices, or steps"
                     ),
                 },
                 {
                     "role": "user",
-                    "content": f"Excerpts:\n{snippets_text}\n\nCustomer question: {ticket_text}",
+                    "content": (
+                        f"Subject: {subject}\n"
+                        f"Issue: {issue}\n\n"
+                        f"Excerpts:\n{excerpts}"
+                    ),
                 },
             ],
         )
