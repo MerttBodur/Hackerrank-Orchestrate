@@ -28,8 +28,17 @@ Read [`problem_statement.md`](./problem_statement.md) for the full task spec, in
 ├── AGENTS.md                       # Rules for AI coding tools + transcript logging
 ├── problem_statement.md            # Full task description and I/O schema
 ├── README.md                       # You are here
-├── code/                           # ← Build your agent here
-│   └── main.py                     #   Entry point (rename/extend as you like)
+├── code/                           # Agent implementation
+│   ├── main.py                     #   CSV entry point
+│   ├── agent.py                    #   Pipeline coordinator
+│   ├── retriever.py                #   Keyword retrieval (bigram + title bonus)
+│   ├── llm_client.py               #   OpenAI gpt-4o-mini response + justification drafting
+│   ├── response_builder.py         #   Routes to LLM or clean fallback
+│   ├── classifier.py               #   Company / request type / product area detection
+│   ├── escalation.py               #   Escalation rules
+│   ├── corpus.py                   #   Loads markdown corpus into chunks
+│   ├── schemas.py                  #   Ticket, Chunk, Prediction dataclasses
+│   └── validator.py                #   Normalises output to allowed values
 ├── data/                           # Local-only support corpus (no network needed)
 │   ├── hackerrank/                 #   HackerRank help center
 │   ├── claude/                     #   Claude Help Center export
@@ -67,7 +76,7 @@ Beyond that you are free to bring your own approach — RAG, vector DBs, tool us
 
 ## Where your code goes
 
-All of your work belongs in [`code/`](./code/). The repo ships with an empty `code/main.py` you can grow into your full agent — add more modules (`agent.py`, `retriever.py`, `classifier.py`, etc.) next to it as needed.
+All of your work belongs in [`code/`](./code/). The agent is fully implemented across `main.py`, `agent.py`, `retriever.py`, `classifier.py`, `escalation.py`, `llm_client.py`, `response_builder.py`, `corpus.py`, `schemas.py`, and `validator.py`. See [`code/README.md`](./code/README.md) for the architecture overview and how to run.
 
 Conventions:
 
@@ -80,14 +89,20 @@ Conventions:
 
 ## Quickstart
 
-Clone this repository:
+Clone and run:
 
 ```bash
 git clone git@github.com:interviewstreet/hackerrank-orchestrate-may26.git
 cd hackerrank-orchestrate-may26
+
+# Set your OpenAI API key (required for LLM response drafting)
+export OPENAI_API_KEY=sk-...   # Windows: set OPENAI_API_KEY=sk-...
+
+# Run the agent — writes output to support_tickets/output.csv
+python code/main.py
 ```
 
-You are free to use any language or runtime. We recommend **Python**, **JavaScript**, or **TypeScript**.
+The agent is implemented in **Python**. No additional dependencies beyond `openai` are required.
 
 ---
 
