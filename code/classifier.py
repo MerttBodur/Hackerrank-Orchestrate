@@ -29,6 +29,8 @@ _INVALID_WORDS = (
     "movie",
     "who is",
     "what is the weather",
+    "delete all files",
+    "delete unnecessary files",
 )
 
 _COMPANY_KEYWORDS = {
