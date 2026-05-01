@@ -26,6 +26,9 @@ build/
 .vscode/
 Thumbs.db
 
+# agent planning docs
+docs/superpowers/
+
 # local data / caches the participant may create
 data/index/
 data/embeddings/
