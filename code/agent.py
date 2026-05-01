@@ -36,7 +36,7 @@ class SupportAgent:
 
         escalated = should_escalate(query, retrieved, company)
         status = "escalated" if escalated else "replied"
-        response = build_response(status=status, issue=query, chunks=retrieved)
+        response = build_response(status=status, subject=ticket.subject, issue=ticket.issue, chunks=retrieved)
         justification = build_justification(status=status, issue=query, chunks=retrieved)
 
         return validate(
