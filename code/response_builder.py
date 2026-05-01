@@ -6,21 +6,20 @@ _ESCALATION_REPLY = (
     "A specialist will follow up with you as soon as possible."
 )
 
-_NO_MATCH_REPLY = "We were unable to find a relevant answer. Please contact support."
+_NO_MATCH_REPLY = (
+    "We couldn't find a specific answer for your request. "
+    "Please contact support directly."
+)
 
 
-def build_response(status: str, issue: str, chunks: list[Chunk]) -> str:
+def build_response(status: str, subject: str, issue: str, chunks: list[Chunk]) -> str:
     if status == "escalated":
         return _ESCALATION_REPLY
-
-    snippets = [f"{chunk.title}: {chunk.text[:400]}" for chunk in chunks[:3]]
-    llm_reply = draft_response(issue, snippets)
-    if llm_reply:
-        return llm_reply
-
-    if chunks:
-        return chunks[0].text[:500].strip() or _NO_MATCH_REPLY
-    return _NO_MATCH_REPLY
+    if not chunks:
+        return _NO_MATCH_REPLY
+    snippets = [f"{chunk.title}: {chunk.text[:600]}" for chunk in chunks[:3]]
+    llm_reply = draft_response(subject, issue, snippets)
+    return llm_reply or _NO_MATCH_REPLY
 
 
 def build_justification(status: str, issue: str, chunks: list[Chunk]) -> str:
